@@ -82,6 +82,76 @@ function showConfirm(message) {
   });
 }
 
+function showInputDialog({ title, label, submitLabel }) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "app-confirm-dialog";
+    dialog.setAttribute("aria-labelledby", "app-input-title");
+
+    const content = document.createElement("div");
+    content.className = "app-confirm-content";
+
+    const heading = document.createElement("h2");
+    heading.id = "app-input-title";
+    heading.textContent = title;
+
+    const form = document.createElement("form");
+    form.className = "app-input-form";
+
+    const inputLabel = document.createElement("label");
+    inputLabel.textContent = label;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.required = true;
+    input.autocomplete = "off";
+    inputLabel.append(input);
+
+    const actions = document.createElement("div");
+    actions.className = "app-confirm-actions";
+
+    const cancel = document.createElement("button");
+    cancel.className = "outline-button";
+    cancel.type = "button";
+    cancel.textContent = "Cancel";
+    cancel.addEventListener("click", () => dialog.close("cancel"));
+
+    const submit = document.createElement("button");
+    submit.className = "button";
+    submit.type = "submit";
+    submit.textContent = submitLabel;
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const value = input.value.trim();
+      if (!value) {
+        input.setCustomValidity("Enter a room name");
+        input.reportValidity();
+        return;
+      }
+      dialog.close("submit");
+    });
+    input.addEventListener("input", () => input.setCustomValidity(""));
+
+    dialog.addEventListener(
+      "close",
+      () => {
+        resolve(dialog.returnValue === "submit" ? input.value.trim() : null);
+        dialog.remove();
+      },
+      { once: true },
+    );
+
+    actions.append(cancel, submit);
+    form.append(inputLabel, actions);
+    content.append(heading, form);
+    dialog.append(content);
+    document.body.append(dialog);
+    dialog.showModal();
+    input.focus();
+  });
+}
+
 async function api(path, options = {}) {
   const headers = {
     ...(localStorage.getItem(tokenKey)

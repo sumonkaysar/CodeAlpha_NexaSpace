@@ -70,6 +70,27 @@
   line-height: 1.55;
 }
 
+.app-input-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.app-input-form input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  font: 14px "DM Sans", sans-serif;
+}
+
+.app-input-form input:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+
 .app-confirm-actions {
   display: flex;
   justify-content: flex-end;

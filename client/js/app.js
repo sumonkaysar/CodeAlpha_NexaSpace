@@ -34,12 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("create-room")
     ?.addEventListener("click", async () => {
-      const name = prompt("Name this room");
+      const name = await showInputDialog({
+        title: "Create a room",
+        label: "Room name",
+        submitLabel: "Create room",
+      });
 
-      if (!name?.trim()) return;
+      if (!name) return;
 
       try {
-        const room = await roomRequest("POST", "/rooms", { name: name.trim() });
+        const room = await roomRequest("POST", "/rooms", { name });
 
         await loadRooms();
         await startMedia();
@@ -70,7 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  document.getElementById("leave-room")?.addEventListener("click", leaveRoom);
+  document.getElementById("leave-room")?.addEventListener("click", async () => {
+    if (await showConfirm("Are you sure you want to leave this room?"))
+      await leaveRoom();
+  });
 
   document
     .getElementById("copy-room")
@@ -134,7 +141,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  document.getElementById("clear-board")?.addEventListener("click", () => {
+  document.getElementById("clear-board")?.addEventListener("click", async () => {
+    if (!(await showConfirm("Clear the shared whiteboard for everyone?")))
+      return;
     window.clearBoard?.();
     socket?.emit("whiteboard:clear");
   });

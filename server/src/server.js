@@ -100,8 +100,3 @@ connectDB()
     console.error("NexaSpace database connection failed:", error.message);
     process.exit(1);
   });
-
-socket.on("file:created", () => {
-  const room = [...socket.rooms].find((name) => name.startsWith("room:"));
-  if (room) socket.to(room).emit("file:created");
-});

@@ -169,8 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         await api("/files", { method: "POST", body: form });
         await loadFiles();
-
-        socket?.emit("file:created");
       } catch (error) {
         showToast(error.message);
       }

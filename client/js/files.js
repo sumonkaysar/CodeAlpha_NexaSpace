@@ -60,7 +60,7 @@ async function decryptFile(blob, passphrase) {
 
 async function loadFiles() {
   if (!currentRoom) return;
-  const files = await api(`/files?room=${encodeURIComponent(currentRoom.id)}`);
+  const files = await api(`/files?room=${encodeURIComponent(currentRoom._id)}`);
 
   const list = document.getElementById("file-list");
 

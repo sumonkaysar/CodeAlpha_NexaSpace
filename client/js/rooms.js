@@ -90,7 +90,7 @@ async function enterRoom(roomId) {
   document.getElementById("lobby").hidden = true;
   document.getElementById("meeting").hidden = false;
   document.getElementById("room-title").textContent = room.name;
-  document.getElementById("copy-room").dataset.roomId = room.id;
+  document.getElementById("copy-room").dataset.roomId = room._id;
 
   await loadFiles();
 
@@ -99,7 +99,7 @@ async function enterRoom(roomId) {
   });
 
   socket.on("connect", () =>
-    socket.emit("room:join", room.id, async (result) => {
+    socket.emit("room:join", room._id, async (result) => {
       if (result.error) return showToast(result.error);
 
       for (const peerId of result.peers) {

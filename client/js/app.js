@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const form = new FormData();
         form.append("file", encrypted, "encrypted.bin");
-        form.append("room", currentRoom.id);
+        form.append("room", currentRoom._id);
         form.append("name", file.name);
 
         await api("/files", { method: "POST", body: form });

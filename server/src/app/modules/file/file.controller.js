@@ -1,5 +1,3 @@
-const path = require("path");
-const fs = require("fs/promises");
 const cloudinary = require("../../config/cloudinary");
 const File = require("./file.model");
 const { fail, getAccessibleRoom } = require("../room/room.service");
@@ -73,7 +71,5 @@ exports.download = async (req, res) => {
     return res.send(Buffer.from(await response.arrayBuffer()));
   }
 
-  res.sendFile(
-    path.resolve(process.env.UPLOAD_DIR || "./uploads", file.storedName),
-  );
+  throw fail("Stored file is not available in Cloudinary", 404);
 };

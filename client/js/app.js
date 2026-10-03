@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("create-room")
     ?.addEventListener("click", async () => {
+      if (!localStorage.getItem(tokenKey)) {
+        showToast("Please sign in to create or join a room.");
+        return;
+      }
+
       const name = await showInputDialog({
         title: "Create a room",
         label: "Room name",
@@ -57,6 +62,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("join-form")
     ?.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (!localStorage.getItem(tokenKey)) {
+        showToast("Please sign in to create or join a room.");
+        return;
+      }
 
       const roomId = new FormData(event.currentTarget).get("roomId").trim();
 

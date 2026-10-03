@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in | NexaSpace</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">Nexa<span>Space</span></a>
+    </header>
+    <main class="auth-wrap">
+      <form class="auth-form" id="auth-form" data-mode="login">
+        <p class="eyebrow">COME ON IN</p>
+        <h1>Sign in</h1>
+        <label
+          >Email<input
+            name="email"
+            type="email"
+            required
+            autocomplete="email" /></label
+        ><label
+          >Password<input
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password" /></label
+        ><button class="button" type="submit">Sign in</button>
+        <p id="form-message" role="status"></p>
+        <p>New to NexaSpace? <a href="register.html">Create an account</a></p>
+      </form>
+    </main>
+    <script src="js/common.js"></script>
+    <script src="js/rooms.js"></script>
+    <script src="js/media.js"></script>
+    <script src="js/files.js"></script>
+    <script src="js/whiteboard.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

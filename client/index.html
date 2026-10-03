@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f1f4ef" />
+    <meta name="description" content="Meet, make, and share in NexaSpace." />
+    <title>NexaSpace | Collaboration room</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html">Nexa<span>Space</span></a>
+      <div id="account-actions">
+        <a href="login.html">Sign in</a
+        ><a class="button" href="register.html">Create account</a>
+      </div>
+    </header>
+    <main class="shell">
+      <section id="lobby" class="lobby">
+        <div class="lobby-heading">
+          <div>
+            <p class="eyebrow">YOUR COLLABORATION SPACE</p>
+            <h1>Meet in the moment.</h1>
+            <p>Video, shared work, and conversations in one room.</p>
+          </div>
+          <button class="button" id="create-room" type="button">
+            Create a room
+          </button>
+        </div>
+        <form class="join-form" id="join-form">
+          <label for="room-id">Have a room ID?</label
+          ><input
+            id="room-id"
+            name="roomId"
+            placeholder="Paste room ID"
+            required
+          /><button class="outline-button" type="submit">Join room</button>
+        </form>
+        <div class="room-list-heading">
+          <h2>Your rooms</h2>
+          <span id="room-count">0</span>
+        </div>
+        <div id="room-list" class="room-list">
+          <p class="empty-state">Sign in to see your rooms.</p>
+        </div>
+      </section>
+      <section id="meeting" class="meeting" hidden>
+        <div class="meeting-header">
+          <div>
+            <p class="eyebrow">LIVE ROOM</p>
+            <h1 id="room-title"></h1>
+            <button class="room-id" id="copy-room" title="Copy room ID">
+              Copy room ID
+            </button>
+          </div>
+          <button class="leave-button" id="leave-room" type="button">
+            Leave
+          </button>
+        </div>
+        <div class="meeting-grid">
+          <section class="call-panel">
+            <div id="video-grid" class="video-grid">
+              <video id="local-video" autoplay muted playsinline></video>
+            </div>
+            <div class="call-controls">
+              <button
+                id="toggle-mic"
+                class="control-button"
+                type="button"
+                title="Mute microphone"
+              >
+                Mic on</button
+              ><button
+                id="toggle-camera"
+                class="control-button"
+                type="button"
+                title="Turn camera off"
+              >
+                Camera on</button
+              ><button id="share-screen" class="control-button" type="button">
+                Share screen
+              </button>
+            </div>
+          </section>
+          <section class="collab-panel">
+            <div class="whiteboard-heading">
+              <div>
+                <p class="eyebrow">SHARED CANVAS</p>
+                <h2>Whiteboard</h2>
+              </div>
+              <button
+                id="clear-board"
+                class="icon-button"
+                type="button"
+                title="Clear whiteboard"
+              >
+                Clear
+              </button>
+            </div>
+            <canvas
+              id="whiteboard"
+              width="900"
+              height="520"
+              aria-label="Shared whiteboard"
+            ></canvas>
+            <div class="file-share">
+              <div class="file-heading">
+                <div>
+                  <p class="eyebrow">PRIVATE SHARING</p>
+                  <h2>Encrypted files</h2>
+                </div>
+                <label class="upload-button" for="file-input">Upload</label
+                ><input id="file-input" type="file" hidden />
+              </div>
+              <label class="key-label" for="file-key">Shared passphrase</label
+              ><input
+                id="file-key"
+                type="password"
+                autocomplete="off"
+                placeholder="Enter the room's shared passphrase"
+              />
+              <p class="security-note">
+                Files are encrypted in your browser before upload. Share this
+                passphrase separately.
+              </p>
+              <div id="file-list" class="file-list"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/rooms.js"></script>
+    <script src="js/media.js"></script>
+    <script src="js/files.js"></script>
+    <script src="js/whiteboard.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

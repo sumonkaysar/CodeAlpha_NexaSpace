@@ -35,6 +35,7 @@ async function login({ email, password }) {
   const user = await User.findOne({ email: email.trim().toLowerCase() }).select(
     "+password",
   );
+
   if (!user || !(await bcrypt.compare(password, user.password)))
     throw fail("Invalid email or password", 401);
   const token = jwt.sign(
@@ -42,6 +43,7 @@ async function login({ email, password }) {
     process.env.JWT_SECRET,
     { expiresIn: "12h" },
   );
+
   return { token, user: { id: user.id, name: user.name, email: user.email } };
 }
 

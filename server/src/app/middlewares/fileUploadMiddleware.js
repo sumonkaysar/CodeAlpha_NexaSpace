@@ -33,6 +33,7 @@ module.exports = (req, res, next) => {
       error.statusCode = statusCode;
       return next(error);
     }
+
     if (!req.file) {
       return next(
         Object.assign(new Error("Encrypted file payload is required"), {
@@ -40,6 +41,7 @@ module.exports = (req, res, next) => {
         }),
       );
     }
+
     next();
   });
 };

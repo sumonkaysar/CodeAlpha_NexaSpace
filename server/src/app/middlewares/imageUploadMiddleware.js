@@ -50,6 +50,7 @@ module.exports = (req, res, next) => {
       error.statusCode = statusCode;
       return next(error);
     }
+
     if (!req.file) {
       return next(
         Object.assign(new Error("Choose an image to upload"), {
@@ -57,6 +58,7 @@ module.exports = (req, res, next) => {
         }),
       );
     }
+
     next();
   });
 };

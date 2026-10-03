@@ -7,6 +7,7 @@ exports.register = async (req, res) => {
     res.status(error.statusCode || 500).json({ message: error.message });
   }
 };
+
 exports.login = async (req, res) => {
   try {
     res.json(await AuthService.login(req.body));

@@ -92,8 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("copy-room")
     ?.addEventListener("click", async (event) => {
-      await navigator.clipboard.writeText(event.currentTarget.dataset.roomId);
-      event.currentTarget.textContent = "Copied";
+      const copyButton = event.currentTarget;
+      await navigator.clipboard.writeText(copyButton.dataset.roomId);
+      copyButton.textContent = "Copied";
     });
 
   document.getElementById("toggle-mic")?.addEventListener("click", (event) => {
@@ -151,12 +152,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  document.getElementById("clear-board")?.addEventListener("click", async () => {
-    if (!(await showConfirm("Clear the shared whiteboard for everyone?")))
-      return;
-    window.clearBoard?.();
-    socket?.emit("whiteboard:clear");
-  });
+  document
+    .getElementById("clear-board")
+    ?.addEventListener("click", async () => {
+      if (!(await showConfirm("Clear the shared whiteboard for everyone?")))
+        return;
+      window.clearBoard?.();
+      socket?.emit("whiteboard:clear");
+    });
 
   document
     .getElementById("file-input")

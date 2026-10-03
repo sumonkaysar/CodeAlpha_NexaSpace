@@ -15,7 +15,7 @@ async function loadRooms() {
                 <article class="room-card">
                   <div>
                     <h3>${escapeHtml(room.name)}</h3>
-                    <p>Room ${escapeHtml(room._id.slice(-6))}</p>
+                    <p>Room ${escapeHtml(room._id)}</p>
                   </div>
                   <button
                     class="outline-button"
@@ -30,13 +30,12 @@ async function loadRooms() {
           .join("")
       : '<p class="empty-state">No rooms yet. Create one or join with a room ID.</p>';
 
-    list
-      .querySelectorAll("[data-open-room]")
-      .forEach((button) =>
-        button.addEventListener("click", () =>
-          enterRoom(button.dataset.openRoom),
-        ),
-      );
+    list.querySelectorAll("[data-open-room]").forEach((button) =>
+      button.addEventListener("click", () => {
+        console.log(button, button.dataset);
+        enterRoom(button.dataset.openRoom);
+      }),
+    );
   } catch (error) {
     list.innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
   }

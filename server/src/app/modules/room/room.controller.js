@@ -30,8 +30,13 @@ exports.create = async (req, res) => {
   res.status(201).json(room);
 };
 
-exports.get = async (req, res) =>
-  res.json(await getAccessibleRoom(req.params.id, req.user.id));
+exports.get = async (req, res) => {
+  const room = await getAccessibleRoom(req.params.id, req.user.id);
+  res.json({
+    ...room.toObject(),
+    isOwner: String(room.owner._id) === req.user.id,
+  });
+};
 
 exports.join = async (req, res) => {
   const room = await findRoomByIdentifier(req.params.id);
@@ -69,7 +74,10 @@ exports.updateStatus = async (req, res) => {
 exports.leave = async (req, res) => {
   const room = await getAccessibleRoom(req.params.id, req.user.id);
   const isOwner = String(room.owner._id) === req.user.id;
-  if (isOwner && room.status !== "closed") {
+  const closeForAll = req.body.closeForAll === true;
+  if (closeForAll && !isOwner)
+    throw fail("Only the room owner can close it for everyone", 403);
+  if (closeForAll && room.status !== "closed") {
     room.status = "closed";
     await room.save();
     req.app.get("io").to(`room:${room.id}`).emit("room:closed", {

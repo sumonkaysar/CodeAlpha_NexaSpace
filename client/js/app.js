@@ -83,8 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   document.getElementById("leave-room")?.addEventListener("click", async () => {
-    if (await showConfirm("Are you sure you want to leave this room?"))
-      await leaveRoom();
+    const action = await showLeaveDialog(Boolean(currentRoom?.isOwner));
+    if (action) await leaveRoom({ closeForAll: action === "close" });
   });
 
   document

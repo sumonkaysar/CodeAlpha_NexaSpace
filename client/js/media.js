@@ -66,15 +66,19 @@ async function stopWhiteboardShare() {
   if (restoreError) throw restoreError;
 }
 
-async function leaveRoom({ notifyServer = true } = {}) {
-  if (notifyServer && currentRoom) {
+async function leaveRoom({ closeForAll = false } = {}) {
+  if (closeForAll && currentRoom) {
     try {
       await api(
         `/rooms/${encodeURIComponent(currentRoom.uid || currentRoom._id)}/leave`,
-        { method: "POST" },
+        {
+          method: "POST",
+          body: JSON.stringify({ closeForAll: true }),
+        },
       );
     } catch (error) {
       showToast(`Could not update the room status: ${error.message}`);
+      return;
     }
   }
 

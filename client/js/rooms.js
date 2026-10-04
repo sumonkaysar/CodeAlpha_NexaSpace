@@ -232,7 +232,7 @@ async function enterRoom(roomId) {
   socket.on("room:closed", async ({ ownerId }) => {
     if (String(currentRoom?.owner?._id) === String(ownerId)) return;
     showToast("The room owner closed this room.");
-    await leaveRoom({ notifyServer: false });
+    await leaveRoom();
   });
 }
 

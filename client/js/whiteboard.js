@@ -8,7 +8,7 @@ function initializeWhiteboard() {
   context.strokeStyle = "#23684d";
 
   let drawing = false;
-  let points = [];
+  let lastPoint = null;
 
   const pointFrom = (event) => {
     const rect = canvas.getBoundingClientRect();
@@ -39,22 +39,28 @@ function initializeWhiteboard() {
 
   canvas.addEventListener("pointerdown", (event) => {
     drawing = true;
-    points = [pointFrom(event)];
+    lastPoint = pointFrom(event);
     canvas.setPointerCapture(event.pointerId);
   });
 
   canvas.addEventListener("pointermove", (event) => {
     if (!drawing) return;
-    points.push(pointFrom(event));
-    if (points.length >= 2)
-      paint({ points: points.slice(-2), color: "#23684d" });
+    const point = pointFrom(event);
+    const stroke = { points: [lastPoint, point], color: "#23684d" };
+    paint(stroke);
+    if (socket?.connected) socket.emit("whiteboard:draw", stroke);
+    lastPoint = point;
   });
 
   const finish = () => {
     if (!drawing) return;
     drawing = false;
-    if (points.length === 1) paint({ points, color: "#23684d" });
-    socket?.emit("whiteboard:draw", { points, color: "#23684d" });
+    if (lastPoint) {
+      const stroke = { points: [lastPoint], color: "#23684d" };
+      paint(stroke);
+      if (socket?.connected) socket.emit("whiteboard:draw", stroke);
+    }
+    lastPoint = null;
   };
 
   canvas.addEventListener("pointerup", finish);

@@ -32,6 +32,7 @@ exports.create = async (req, res) => {
 
 exports.get = async (req, res) =>
   res.json(await getAccessibleRoom(req.params.id, req.user.id));
+
 exports.join = async (req, res) => {
   const room = await findRoomByIdentifier(req.params.id);
   if (!room) throw fail("Room not found", 404);
@@ -58,6 +59,23 @@ exports.updateStatus = async (req, res) => {
     throw fail("Only the room owner can change its status", 403);
   room.status = req.body.status;
   await room.save();
+  if (room.status === "closed")
+    req.app.get("io").to(`room:${room.id}`).emit("room:closed", {
+      ownerId: req.user.id,
+    });
+  res.json({ _id: room.id, uid: room.uid, status: room.status });
+};
+
+exports.leave = async (req, res) => {
+  const room = await getAccessibleRoom(req.params.id, req.user.id);
+  const isOwner = String(room.owner._id) === req.user.id;
+  if (isOwner && room.status !== "closed") {
+    room.status = "closed";
+    await room.save();
+    req.app.get("io").to(`room:${room.id}`).emit("room:closed", {
+      ownerId: req.user.id,
+    });
+  }
   res.json({ _id: room.id, uid: room.uid, status: room.status });
 };
 

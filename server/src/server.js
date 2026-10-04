@@ -8,17 +8,44 @@ const connectDB = require("./app/config/db");
 const Room = require("./app/modules/room/room.model");
 
 const PORT = process.env.PORT || 5200;
-const server = http.createServer(app);
+const dbReady = connectDB().then(
+  () => null,
+  (error) => {
+    console.error("NexaSpace database connection failed:", error.message);
+    return error;
+  },
+);
+async function ensureDatabaseReady() {
+  const error = await dbReady;
+  if (error) throw error;
+}
+
+const server = http.createServer((req, res) => {
+  ensureDatabaseReady()
+    .then(() => app(req, res))
+    .catch((error) => {
+      console.error("NexaSpace database connection failed:", error.message);
+      res.statusCode = 503;
+      res.end("Database unavailable");
+    });
+});
 const io = new Server(server, {
   cors: corsOptions,
 });
 
 app.set("io", io);
 
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   try {
-    const token = socket.handshake.auth && socket.handshake.auth.token;
-    if (!token) return next(new Error("Authentication required"));
+    await ensureDatabaseReady();
+  } catch (_error) {
+    return next(new Error("Database unavailable"));
+  }
+
+  const token = socket.handshake.auth && socket.handshake.auth.token;
+  if (!token) return next(new Error("Authentication required"));
+
+  try {
     socket.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (_error) {
@@ -98,11 +125,13 @@ io.on("connection", (socket) => {
   });
 });
 
-connectDB()
-  .then(() =>
-    server.listen(PORT, () => console.log(`NexaSpace listening on ${PORT}`)),
-  )
-  .catch((error) => {
-    console.error("NexaSpace database connection failed:", error.message);
-    process.exit(1);
-  });
+if (require.main === module) {
+  dbReady
+    .then((error) => {
+      if (error) throw error;
+      server.listen(PORT, () => console.log(`NexaSpace listening on ${PORT}`));
+    })
+    .catch(() => process.exit(1));
+}
+
+module.exports = server;

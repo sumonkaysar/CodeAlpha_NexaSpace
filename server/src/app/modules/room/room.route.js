@@ -12,6 +12,7 @@ router.post("/", run(controller.create));
 router.patch("/:id/status", run(controller.updateStatus));
 router.get("/:id", run(controller.get));
 router.post("/:id/join", run(controller.join));
+router.post("/:id/leave", run(controller.leave));
 router.delete("/:id", run(controller.remove));
 
 module.exports = router;

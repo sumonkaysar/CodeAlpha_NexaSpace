@@ -81,11 +81,16 @@ function createPeer(peerId) {
     connection.addTrack(track, localStream);
   });
   const outgoingVideoTrack =
-    screenStream?.getVideoTracks()[0] || cameraTrack;
+    whiteboardStream?.getVideoTracks()[0] ||
+    screenStream?.getVideoTracks()[0] ||
+    cameraTrack;
   if (outgoingVideoTrack)
     connection.addTrack(
       outgoingVideoTrack,
-      localStream || new MediaStream([outgoingVideoTrack]),
+      whiteboardStream ||
+        screenStream ||
+        localStream ||
+        new MediaStream([outgoingVideoTrack]),
     );
 
   connection.onicecandidate = ({ candidate }) =>
@@ -143,10 +148,19 @@ async function enterRoom(roomId) {
 
   socket = window.io("https://nexaspace-server.vercel.app", {
     auth: { token: localStorage.getItem(tokenKey) },
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
   });
-  socket.on("connect_error", (error) =>
-    showToast(`Could not connect to the room: ${error.message}`),
-  );
+  socket.on("connect_error", (error) => {
+    if (/invalid or expired token/i.test(error.message)) {
+      localStorage.removeItem(tokenKey);
+      showToast("Your session is invalid or expired. Please sign in again.");
+      return;
+    }
+    showToast(`Could not connect to the room: ${error.message}`);
+  });
 
   socket.on("connect", () =>
     socket.emit("room:join", room._id, (result) => {
@@ -215,6 +229,11 @@ async function enterRoom(roomId) {
   socket.on("whiteboard:clear", clearBoard);
 
   socket.on("file:created", loadFiles);
+  socket.on("room:closed", async ({ ownerId }) => {
+    if (String(currentRoom?.owner?._id) === String(ownerId)) return;
+    showToast("The room owner closed this room.");
+    await leaveRoom({ notifyServer: false });
+  });
 }
 
 async function applyPendingIceCandidates(peerId, connection) {

@@ -4,6 +4,7 @@ let currentRoom = null;
 let socket = null;
 let localStream = null;
 let screenStream = null;
+let whiteboardStream = null;
 let cameraTrack = null;
 const peers = new Map();
 const pendingIceCandidates = new Map();
@@ -168,6 +169,10 @@ async function api(path, options = {}) {
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      localStorage.removeItem(tokenKey);
+      throw new Error("Your session is invalid or expired. Please sign in again.");
+    }
     throw new Error(body.message || "Request failed");
   }
 

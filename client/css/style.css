@@ -431,6 +431,12 @@ a {
   margin: 0 0 11px;
 }
 
+.whiteboard-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+}
+
 .icon-button {
   background: white;
   border: 1px solid var(--line);

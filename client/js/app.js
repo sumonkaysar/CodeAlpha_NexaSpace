@@ -170,6 +170,61 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   document
+    .getElementById("share-whiteboard")
+    ?.addEventListener("click", async () => {
+      if (whiteboardStream) {
+        try {
+          await stopWhiteboardShare();
+        } catch (error) {
+          showToast(`Could not stop whiteboard sharing: ${error.message}`);
+        }
+        return;
+      }
+      if (screenStream) {
+        showToast("Stop screen sharing before sharing the whiteboard.");
+        return;
+      }
+
+      try {
+        const canvas = document.getElementById("whiteboard");
+        if (typeof canvas.captureStream !== "function")
+          throw new Error("Whiteboard sharing is not supported by this browser");
+        whiteboardStream = canvas.captureStream(15);
+        const boardTrack = whiteboardStream.getVideoTracks()[0];
+        if (!boardTrack) throw new Error("Could not capture the whiteboard");
+
+        for (const connection of peers.values()) {
+          const sender = connection
+            .getSenders()
+            .find((item) => item.track?.kind === "video");
+          await sender?.replaceTrack(boardTrack);
+        }
+
+        document.getElementById("local-video").srcObject = whiteboardStream;
+        const shareButton = document.getElementById("share-whiteboard");
+        shareButton.textContent = "Stop sharing board";
+        shareButton.classList.add("active");
+
+        boardTrack.onended = async () => {
+          try {
+            await stopWhiteboardShare();
+          } catch (error) {
+            showToast(`Could not stop whiteboard sharing: ${error.message}`);
+          }
+        };
+      } catch (error) {
+        if (whiteboardStream) {
+          try {
+            await stopWhiteboardShare();
+          } catch (stopError) {
+            showToast(`Could not stop whiteboard sharing: ${stopError.message}`);
+          }
+        }
+        showToast(error.message);
+      }
+    });
+
+  document
     .getElementById("clear-board")
     ?.addEventListener("click", async () => {
       if (!(await showConfirm("Clear the shared whiteboard for everyone?")))

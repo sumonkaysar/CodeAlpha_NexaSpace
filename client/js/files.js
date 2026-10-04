@@ -58,6 +58,79 @@ async function decryptFile(blob, passphrase) {
   return new Blob([plaintext]);
 }
 
+function renderChat() {
+  const list = document.getElementById("chat-messages");
+  if (!list) return;
+
+  list.innerHTML = chatEntries.length
+    ? chatEntries
+        .map((entry) => {
+          const isMine = entry.user?.id === currentUserId;
+          const author = entry.user?.name || "Participant";
+          const time = new Date(entry.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          if (entry.type === "file") {
+            return `
+              <article class="chat-message chat-file-message${isMine ? " mine" : ""}">
+                <span class="chat-message-author">${escapeHtml(author)} shared a file</span>
+                <button class="chat-file-button" data-chat-download="${escapeHtml(entry.id)}" data-name="${escapeHtml(entry.originalName)}" type="button">${escapeHtml(entry.originalName)}</button>
+                <span class="chat-message-time">${escapeHtml(time)}</span>
+              </article>
+            `;
+          }
+          return `
+            <article class="chat-message${isMine ? " mine" : ""}">
+              <span class="chat-message-author">${escapeHtml(author)}</span>
+              <p class="chat-message-text">${escapeHtml(entry.message)}</p>
+              <span class="chat-message-time">${escapeHtml(time)}</span>
+            </article>
+          `;
+        })
+        .join("")
+    : '<p class="empty-state">Messages and shared files appear here.</p>';
+
+  list.querySelectorAll("[data-chat-download]").forEach((button) => {
+    button.addEventListener("click", () =>
+      downloadSharedFile(button.dataset.chatDownload, button.dataset.name),
+    );
+  });
+  list.scrollTop = list.scrollHeight;
+}
+
+function addChatMessage(message) {
+  chatEntries.push({ ...message, type: "message" });
+  renderChat();
+}
+
+function announceSharedFile(file) {
+  if (!file?.id || announcedFileIds.has(file.id)) return;
+  announcedFileIds.add(file.id);
+  chatEntries.push({
+    ...file,
+    user: file.user || file.uploader,
+    type: "file",
+  });
+  renderChat();
+}
+
+function receiveChatMessage(message) {
+  if (!message || typeof message.message !== "string") return;
+  addChatMessage(message);
+}
+
+async function handleSharedFile(file) {
+  if (file) announceSharedFile(file);
+  try {
+    await loadFiles();
+  } catch (error) {
+    showToast(
+      `File shared, but the file list could not refresh: ${error.message}`,
+    );
+  }
+}
+
 async function loadFiles() {
   if (!currentRoom) return;
   const files = await api(`/files?room=${encodeURIComponent(currentRoom._id)}`);
@@ -84,34 +157,51 @@ async function loadFiles() {
         .join("")
     : '<p class="empty-state">No files shared in this room.</p>';
 
-  list.querySelectorAll("[data-download]").forEach((button) =>
-    button.addEventListener("click", async () => {
-      try {
-        const passphrase = document.getElementById("file-key").value;
-        if (!passphrase) throw new Error("Enter the shared passphrase first");
-
-        const encrypted = await fetch(
-          `${API}/files/${button.dataset.download}/download`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
-            },
-          },
-        );
-
-        if (!encrypted.ok) throw new Error("Could not download file");
-
-        const file = await decryptFile(await encrypted.blob(), passphrase);
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(file);
-        link.download = button.dataset.name;
-        link.click();
-
-        URL.revokeObjectURL(link.href);
-      } catch (error) {
-        showToast(error.message);
-      }
+  files.forEach((file) =>
+    announceSharedFile({
+      id: file._id,
+      originalName: file.originalName,
+      user: file.uploader
+        ? { id: file.uploader._id, name: file.uploader.name }
+        : null,
+      createdAt: file.createdAt,
     }),
   );
+
+  list.querySelectorAll("[data-download]").forEach((button) =>
+    button.addEventListener("click", () =>
+      downloadSharedFile(button.dataset.download, button.dataset.name),
+    ),
+  );
+  renderChat();
+}
+
+async function downloadSharedFile(fileId, fileName) {
+  try {
+    const passphrase = document.getElementById("file-key").value;
+    if (!passphrase) throw new Error("Enter the shared passphrase first");
+
+    const response = await fetch(
+      `${API}/files/${encodeURIComponent(fileId)}/download`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+        },
+      },
+    );
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || "Could not download file");
+    }
+
+    const decrypted = await decryptFile(await response.blob(), passphrase);
+    const url = URL.createObjectURL(decrypted);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    showToast(error.message);
+  }
 }

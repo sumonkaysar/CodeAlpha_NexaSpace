@@ -5,13 +5,18 @@ const fail = (message, statusCode = 400) =>
   Object.assign(new Error(message), { statusCode });
 
 async function findRoomByIdentifier(identifier) {
-  if (typeof identifier !== "string" || !identifier.trim())
+  if (
+    (typeof identifier !== "string" &&
+      !mongoose.Types.ObjectId.isValid(identifier)) ||
+    !String(identifier).trim()
+  )
     throw fail("Invalid room id");
 
-  const roomCode = identifier.trim().toUpperCase();
+  const normalizedIdentifier = String(identifier).trim();
+  const roomCode = normalizedIdentifier.toUpperCase();
   let room = await Room.findOne({ uid: roomCode });
-  if (!room && mongoose.Types.ObjectId.isValid(identifier))
-    room = await Room.findById(identifier);
+  if (!room && mongoose.Types.ObjectId.isValid(normalizedIdentifier))
+    room = await Room.findById(normalizedIdentifier);
   return room;
 }
 

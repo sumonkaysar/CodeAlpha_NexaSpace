@@ -136,6 +136,9 @@ async function enterRoom(roomId) {
   if (room.status !== "open") throw new Error("This room is closed");
   await startMedia();
   currentRoom = room;
+  currentUserId = getTokenUserId();
+  chatEntries.length = 0;
+  announcedFileIds.clear();
 
   document.getElementById("lobby").hidden = true;
   document.getElementById("meeting").hidden = false;
@@ -224,7 +227,8 @@ async function enterRoom(roomId) {
     }
   });
 
-  socket.on("file:created", loadFiles);
+  socket.on("chat:message", receiveChatMessage);
+  socket.on("file:created", handleSharedFile);
   socket.on("room:closed", async ({ ownerId }) => {
     if (String(currentRoom?.owner?._id) === String(ownerId)) return;
     showToast("The room owner closed this room.");

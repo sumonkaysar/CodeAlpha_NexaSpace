@@ -137,6 +137,36 @@
               </p>
               <div id="file-list" class="file-list"></div>
             </div>
+            <section class="room-chat" aria-labelledby="chat-title">
+              <div class="file-heading">
+                <div>
+                  <p class="eyebrow">ROOM CONVERSATION</p>
+                  <h2 id="chat-title">Chat</h2>
+                </div>
+              </div>
+              <div
+                id="chat-messages"
+                class="chat-messages"
+                role="log"
+                aria-live="polite"
+                aria-relevant="additions"
+              >
+                <p class="empty-state">Messages and shared files appear here.</p>
+              </div>
+              <form id="chat-form" class="chat-form">
+                <label class="visually-hidden" for="chat-input">Message everyone</label>
+                <input
+                  id="chat-input"
+                  name="message"
+                  type="text"
+                  maxlength="2000"
+                  autocomplete="off"
+                  placeholder="Message everyone"
+                  required
+                />
+                <button class="button" type="submit">Send</button>
+              </form>
+            </section>
           </section>
         </div>
       </section>

@@ -1,3 +1,4 @@
+const path = require("path");
 const cloudinary = require("../../config/cloudinary");
 const File = require("./file.model");
 const { fail, getAccessibleRoom } = require("../room/room.service");
@@ -31,7 +32,13 @@ exports.upload = async (req, res) => {
       size: req.file.size,
     });
     metadataSaved = true;
-    req.app.get("io").to(`room:${roomId}`).emit("file:created");
+    req.app.get("io").to(`room:${roomId}`).emit("file:created", {
+      id: file.id,
+      originalName: file.originalName,
+      size: file.size,
+      uploader: { id: req.user.id, name: req.user.name },
+      createdAt: file.createdAt,
+    });
     res.status(201).json({
       id: file.id,
       room: file.room,

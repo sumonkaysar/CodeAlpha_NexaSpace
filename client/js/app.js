@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  currentUserId = getTokenUserId();
   const authForm = document.getElementById("auth-form");
 
   authForm?.addEventListener("submit", async (event) => {
@@ -13,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await roomRequest("POST", "/auth/login", data);
 
       localStorage.setItem(tokenKey, result.token);
+      currentUserId = result.user.id;
       location.href = "index.html";
     } catch (error) {
       document.getElementById("form-message").textContent = error.message;
@@ -30,6 +32,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadRooms();
   }
+
+  document.getElementById("chat-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = document.getElementById("chat-input");
+    const message = input.value.trim();
+    if (!message) return;
+    if (!socket?.connected) {
+      showToast("Chat is not connected. Please reconnect to the room.");
+      return;
+    }
+
+    socket.emit("chat:send", { message }, (result = {}) => {
+      if (result.error) showToast(result.error);
+    });
+    input.value = "";
+    input.focus();
+  });
 
   document
     .getElementById("create-room")

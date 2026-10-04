@@ -1,6 +1,6 @@
 # CodeAlpha NexaSpace
 
-A browser-based video collaboration room with multi-user WebRTC calling, screen sharing, a synchronized whiteboard, and encrypted file sharing. Its static client follows NexaCart's HTML/CSS/JavaScript approach; the backend uses modular Express, MongoDB, and Socket.IO.
+A browser-based video collaboration room with multi-user WebRTC calling, screen sharing, a private whiteboard, real-time room chat, and encrypted file sharing. Its static client follows NexaCart's HTML/CSS/JavaScript approach; the backend uses modular Express, MongoDB, and Socket.IO.
 
 ## Run
 
@@ -13,5 +13,7 @@ The API defaults to `http://localhost:5200/api`. Create an account, sign in, the
 Socket.IO clients connect using WebSocket transport (not HTTP polling), as required for the Vercel server deployment. Enable Fluid Compute/WebSocket support for the Vercel project and redeploy the server. The app reconnects after server-initiated disconnects; room state remains in MongoDB.
 
 Rooms have a short, readable room code for sharing and joining; the server continues to use the MongoDB `_id` internally. Owners can close or reopen a room from the room list. Leaving a room closes it for other participants; the owner can reopen it before anyone joins again. Each participant's whiteboard is private and is not synchronized to other users. Participants can explicitly share their screen or whiteboard video feed; while whiteboard sharing is active, others can see the shared canvas in the video feed without their own whiteboards being changed.
+
+Room chat messages are delivered live to connected room participants and are not persisted. Shared encrypted files appear as clickable entries in chat and can be downloaded/decrypted with the room's shared passphrase.
 
 The initial implementation uses peer-to-peer mesh connections, suitable for small calls. Larger rooms should use an SFU such as mediasoup or LiveKit.

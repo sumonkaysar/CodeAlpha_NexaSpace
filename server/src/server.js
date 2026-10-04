@@ -1,5 +1,6 @@
 require("dotenv").config();
 const http = require("http");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { Server } = require("socket.io");
 const app = require("./app");
@@ -101,6 +102,25 @@ io.on("connection", (socket) => {
         });
     });
   }
+
+  socket.on("chat:send", (payload = {}, callback = () => {}) => {
+    const room = [...socket.rooms].find((name) => name.startsWith("room:"));
+    const message =
+      typeof payload.message === "string" ? payload.message.trim() : "";
+    if (!room) return callback({ error: "Join a room before chatting" });
+    if (!message) return callback({ error: "Message cannot be empty" });
+    if (message.length > 2000)
+      return callback({ error: "Messages must be 2000 characters or fewer" });
+
+    const chatMessage = {
+      id: crypto.randomUUID(),
+      message,
+      user: { id: socket.user.id, name: socket.user.name },
+      createdAt: new Date().toISOString(),
+    };
+    io.to(room).emit("chat:message", chatMessage);
+    callback({ ok: true });
+  });
 
   socket.on("disconnecting", () => {
     for (const room of socket.rooms)

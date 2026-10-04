@@ -1,5 +1,6 @@
 const API = "https://nexaspace-server.vercel.app/api";
 const tokenKey = "nexaspace_token";
+let currentUserId = null;
 let currentRoom = null;
 let socket = null;
 let localStream = null;
@@ -8,8 +9,20 @@ let whiteboardStream = null;
 let cameraTrack = null;
 const peers = new Map();
 const pendingIceCandidates = new Map();
+const chatEntries = [];
+const announcedFileIds = new Set();
 const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 let toastTimeout;
+
+function getTokenUserId() {
+  const token = localStorage.getItem(tokenKey);
+  if (!token) return null;
+  const payload = token.split(".")[1];
+  if (!payload) return null;
+  const encoded = payload.replace(/-/g, "+").replace(/_/g, "/");
+  const decoded = atob(encoded + "=".repeat((4 - (encoded.length % 4)) % 4));
+  return JSON.parse(decoded).id || null;
+}
 
 function showToast(message) {
   let toast = document.querySelector(".toast");

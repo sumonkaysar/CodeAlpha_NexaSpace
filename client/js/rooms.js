@@ -224,10 +224,6 @@ async function enterRoom(roomId) {
     }
   });
 
-  socket.on("whiteboard:draw", drawRemoteStroke);
-
-  socket.on("whiteboard:clear", clearBoard);
-
   socket.on("file:created", loadFiles);
   socket.on("room:closed", async ({ ownerId }) => {
     if (String(currentRoom?.owner?._id) === String(ownerId)) return;

@@ -12,6 +12,6 @@ The API defaults to `http://localhost:5200/api`. Create an account, sign in, the
 
 Socket.IO clients connect using WebSocket transport (not HTTP polling), as required for the Vercel server deployment. Enable Fluid Compute/WebSocket support for the Vercel project and redeploy the server. The app reconnects after server-initiated disconnects; room state remains in MongoDB.
 
-Rooms have a short, readable room code for sharing and joining; the server continues to use the MongoDB `_id` internally. Owners can close or reopen a room from the room list. Leaving a room closes it for other participants; the owner can reopen it before anyone joins again. Participants can share either their screen or the whiteboard video feed and stop sharing to return to their camera.
+Rooms have a short, readable room code for sharing and joining; the server continues to use the MongoDB `_id` internally. Owners can close or reopen a room from the room list. Leaving a room closes it for other participants; the owner can reopen it before anyone joins again. Each participant's whiteboard is private and is not synchronized to other users. Participants can explicitly share their screen or whiteboard video feed; while whiteboard sharing is active, others can see the shared canvas in the video feed without their own whiteboards being changed.
 
 The initial implementation uses peer-to-peer mesh connections, suitable for small calls. Larger rooms should use an SFU such as mediasoup or LiveKit.

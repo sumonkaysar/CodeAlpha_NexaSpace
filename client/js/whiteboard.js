@@ -48,7 +48,6 @@ function initializeWhiteboard() {
     const point = pointFrom(event);
     const stroke = { points: [lastPoint, point], color: "#23684d" };
     paint(stroke);
-    if (socket?.connected) socket.emit("whiteboard:draw", stroke);
     lastPoint = point;
   });
 
@@ -58,15 +57,12 @@ function initializeWhiteboard() {
     if (lastPoint) {
       const stroke = { points: [lastPoint], color: "#23684d" };
       paint(stroke);
-      if (socket?.connected) socket.emit("whiteboard:draw", stroke);
     }
     lastPoint = null;
   };
 
   canvas.addEventListener("pointerup", finish);
   canvas.addEventListener("pointercancel", finish);
-
-  window.drawRemoteStroke = paint;
 
   window.clearBoard = () =>
     context.clearRect(0, 0, canvas.width, canvas.height);

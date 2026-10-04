@@ -102,22 +102,6 @@ io.on("connection", (socket) => {
     });
   }
 
-  socket.on("whiteboard:draw", (payload) => {
-    const room = [...socket.rooms].find((name) => name.startsWith("room:"));
-    if (
-      room &&
-      payload &&
-      Array.isArray(payload.points) &&
-      payload.points.length <= 300
-    )
-      socket.to(room).emit("whiteboard:draw", payload);
-  });
-
-  socket.on("whiteboard:clear", () => {
-    const room = [...socket.rooms].find((name) => name.startsWith("room:"));
-    if (room) socket.to(room).emit("whiteboard:clear");
-  });
-
   socket.on("disconnecting", () => {
     for (const room of socket.rooms)
       if (room.startsWith("room:"))

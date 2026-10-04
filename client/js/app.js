@@ -227,10 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("clear-board")
     ?.addEventListener("click", async () => {
-      if (!(await showConfirm("Clear the shared whiteboard for everyone?")))
+      if (!(await showConfirm("Clear your whiteboard?")))
         return;
       window.clearBoard?.();
-      socket?.emit("whiteboard:clear");
     });
 
   document

@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const encrypted = await encryptFile(file, passphrase);
 
         const form = new FormData();
-        form.append("file", encrypted, "encrypted.bin");
+        form.append("file", encrypted, "encrypted.txt");
         form.append("room", currentRoom._id);
         form.append("name", file.name);
 

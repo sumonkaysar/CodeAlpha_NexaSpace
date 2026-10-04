@@ -10,7 +10,7 @@ const storage = new CloudinaryStorage({
       process.env.CLOUDINARY_FILES_FOLDER ||
       `${process.env.CLOUDINARY_FOLDER || "nexaspace"}/encrypted-files`,
     resource_type: "raw",
-    public_id: `encrypted-${crypto.randomUUID()}.bin`,
+    public_id: `encrypted-${crypto.randomUUID()}.txt`,
   }),
 });
 

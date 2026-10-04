@@ -9,6 +9,7 @@ router.use(auth);
 
 router.get("/", run(controller.list));
 router.post("/", run(controller.create));
+router.patch("/:id/status", run(controller.updateStatus));
 router.get("/:id", run(controller.get));
 router.post("/:id/join", run(controller.join));
 router.delete("/:id", run(controller.remove));

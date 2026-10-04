@@ -6,6 +6,7 @@ let localStream = null;
 let screenStream = null;
 let cameraTrack = null;
 const peers = new Map();
+const pendingIceCandidates = new Map();
 const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 let toastTimeout;
 

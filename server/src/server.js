@@ -32,9 +32,15 @@ io.on("connection", (socket) => {
       const room = await Room.findById(roomId);
       if (
         !room ||
+        room.status !== "open" ||
         !room.members.some((member) => String(member) === socket.user.id)
       )
-        return callback({ error: "Join the room before connecting" });
+        return callback({
+          error:
+            room?.status === "closed"
+              ? "This room is closed"
+              : "Join the room before connecting",
+        });
       socket.join(`room:${room.id}`);
       socket.to(`room:${room.id}`).emit("peer:joined", {
         peerId: socket.id,

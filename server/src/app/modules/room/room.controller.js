@@ -1,13 +1,24 @@
 const Room = require("./room.model");
-const mongoose = require("mongoose");
-const { fail, getAccessibleRoom } = require("./room.service");
+const {
+  ensureRoomCode,
+  fail,
+  findRoomByIdentifier,
+  getAccessibleRoom,
+} = require("./room.service");
 
-exports.list = async (req, res) =>
+exports.list = async (req, res) => {
+  const rooms = await Room.find({ members: req.user.id })
+    .populate("owner", "name")
+    .sort({ updatedAt: -1 });
+  for (const room of rooms) await ensureRoomCode(room);
   res.json(
-    await Room.find({ members: req.user.id })
-      .populate("owner", "name")
-      .sort({ updatedAt: -1 }),
+    rooms.map((room) => ({
+      ...room.toObject(),
+      isOwner: String(room.owner._id) === req.user.id,
+    })),
   );
+};
+
 exports.create = async (req, res) => {
   if (typeof req.body.name !== "string" || !req.body.name.trim())
     throw fail("Room name is required");
@@ -18,19 +29,38 @@ exports.create = async (req, res) => {
   });
   res.status(201).json(room);
 };
+
 exports.get = async (req, res) =>
   res.json(await getAccessibleRoom(req.params.id, req.user.id));
 exports.join = async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id))
-    throw fail("Invalid room id");
-  const room = await Room.findById(req.params.id);
+  const room = await findRoomByIdentifier(req.params.id);
   if (!room) throw fail("Room not found", 404);
+  if (room.status !== "open") throw fail("This room is closed", 409);
   if (!room.members.some((member) => String(member) === req.user.id)) {
     room.members.push(req.user.id);
     await room.save();
   }
-  res.json({ id: room.id, name: room.name, members: room.members.length });
+  await ensureRoomCode(room);
+  res.json({
+    _id: room.id,
+    uid: room.uid,
+    name: room.name,
+    status: room.status,
+    members: room.members.length,
+  });
 };
+
+exports.updateStatus = async (req, res) => {
+  if (!["open", "closed"].includes(req.body.status))
+    throw fail("Room status must be open or closed");
+  const room = await getAccessibleRoom(req.params.id, req.user.id);
+  if (String(room.owner._id) !== req.user.id)
+    throw fail("Only the room owner can change its status", 403);
+  room.status = req.body.status;
+  await room.save();
+  res.json({ _id: room.id, uid: room.uid, status: room.status });
+};
+
 exports.remove = async (req, res) => {
   const room = await getAccessibleRoom(req.params.id, req.user.id);
   if (String(room.owner._id) !== req.user.id)

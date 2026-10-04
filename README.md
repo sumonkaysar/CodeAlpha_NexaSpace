@@ -10,4 +10,6 @@ A browser-based video collaboration room with multi-user WebRTC calling, screen 
 
 The API defaults to `http://localhost:5200/api`. Create an account, sign in, then create or join a room. All room members need the shared room passphrase to encrypt/decrypt shared files; the passphrase is never sent to the server. Encrypted file payloads are stored in Cloudinary as raw files in `CLOUDINARY_FILES_FOLDER` (by default, `nexaspace/encrypted-files`) and remain encrypted at rest; this Cloudinary folder keeps encrypted payloads organized separately from images and is not a local upload directory. Image uploads use the authenticated `POST /api/uploads/image` endpoint. WebRTC media uses browser DTLS-SRTP. Configure `CLIENT_ORIGIN` as a comma-separated list of allowed origins (including `https://nexaspace-client.vercel.app` for production and your local client origin for development) in the server deployment environment. The API and Socket.IO server use the same allowlist.
 
+Rooms have a short, readable room code for sharing and joining; the server continues to use the MongoDB `_id` internally. Owners can close or reopen a room from the room list. Joining a closed room is disabled until its owner reopens it.
+
 The initial implementation uses peer-to-peer mesh connections, suitable for small calls. Larger rooms should use an SFU such as mediasoup or LiveKit.

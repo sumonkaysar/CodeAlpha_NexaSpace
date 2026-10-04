@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const room = await roomRequest("POST", "/rooms", { name });
 
         await loadRooms();
-        await startMedia();
         await enterRoom(room._id);
       } catch (error) {
         showToast(error.message);
@@ -77,7 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
           {},
         );
 
-        await startMedia();
         await enterRoom(roomId);
       } catch (error) {
         showToast(error.message);
@@ -93,8 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("copy-room")
     ?.addEventListener("click", async (event) => {
       const copyButton = event.currentTarget;
-      await navigator.clipboard.writeText(copyButton.dataset.roomId);
-      copyButton.textContent = "Copied";
+      try {
+        await navigator.clipboard.writeText(copyButton.dataset.roomId);
+        showToast("Room code copied.");
+      } catch (error) {
+        showToast(`Could not copy the room code: ${error.message}`);
+      }
     });
 
   document.getElementById("toggle-mic")?.addEventListener("click", (event) => {
@@ -120,6 +122,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("share-screen")
     ?.addEventListener("click", async () => {
+      if (screenStream) {
+        try {
+          await stopScreenShare();
+        } catch (error) {
+          showToast(`Could not stop screen sharing: ${error.message}`);
+        }
+        return;
+      }
+
       try {
         screenStream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
@@ -135,19 +146,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         document.getElementById("local-video").srcObject = screenStream;
+        const shareButton = document.getElementById("share-screen");
+        shareButton.textContent = "Stop sharing";
+        shareButton.classList.add("active");
 
         screenTrack.onended = async () => {
-          for (const connection of peers.values()) {
-            const sender = connection
-              .getSenders()
-              .find((item) => item.track?.kind === "video");
-            await sender?.replaceTrack(cameraTrack || null);
+          try {
+            await stopScreenShare();
+          } catch (error) {
+            showToast(`Could not stop screen sharing: ${error.message}`);
           }
-
-          document.getElementById("local-video").srcObject = localStream;
-          screenStream = null;
         };
       } catch (error) {
+        if (screenStream) {
+          try {
+            await stopScreenShare();
+          } catch (stopError) {
+            showToast(`Could not stop screen sharing: ${stopError.message}`);
+          }
+        }
         if (error.name !== "NotAllowedError") showToast(error.message);
       }
     });

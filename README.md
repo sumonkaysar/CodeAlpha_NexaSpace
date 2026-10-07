@@ -1,19 +1,41 @@
 # CodeAlpha NexaSpace
 
-A browser-based video collaboration room with multi-user WebRTC calling, screen sharing, a private whiteboard, real-time room chat, and encrypted file sharing. Its static client follows NexaCart's HTML/CSS/JavaScript approach; the backend uses modular Express, MongoDB, and Socket.IO.
+NexaSpace is a browser-based collaboration room for video calls, screen sharing, private whiteboards, live chat, and encrypted file sharing. The static HTML/CSS/JavaScript client uses WebRTC and Socket.IO; the Express/MongoDB server handles accounts, room membership, signaling, and file metadata.
 
-## Run
+## Links
 
-1. Copy `server/.env.example` to `server/.env`, set `MONGO_URI`, a long random `JWT_SECRET`, and the Cloudinary credentials (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`).
-2. From `server`, run `pnpm install` and `pnpm dev`.
-3. Serve `client` from `http://localhost:5500` (WebRTC camera/microphone require localhost or HTTPS). Open `index.html`.
+- **Client:** [https://nexaspace-client.vercel.app](https://nexaspace-client.vercel.app)
+- **Server/API and Socket.IO:** [https://nexaspace-server.vercel.app](https://nexaspace-server.vercel.app)
+- **GitHub:** [sumonkaysar/CodeAlpha_NexaSpace](https://github.com/sumonkaysar/CodeAlpha_NexaSpace)
 
-The API defaults to `http://localhost:5200/api`. Create an account, sign in, then create or join a room. All room members need the shared room passphrase to encrypt/decrypt shared files; the passphrase is never sent to the server. Encrypted file payloads are stored in Cloudinary as raw files in `CLOUDINARY_FILES_FOLDER` (by default, `nexaspace/encrypted-files`) and remain encrypted at rest; this Cloudinary folder keeps encrypted payloads organized separately from images and is not a local upload directory. Image uploads use the authenticated `POST /api/uploads/image` endpoint. WebRTC media uses browser DTLS-SRTP. Configure `CLIENT_ORIGIN` as a comma-separated list of allowed origins (including `https://nexaspace-client.vercel.app` for production and your local client origin for development) in the server deployment environment. The API and Socket.IO server use the same allowlist.
+## Features
 
-Socket.IO clients connect using WebSocket transport (not HTTP polling), as required for the Vercel server deployment. Enable Fluid Compute/WebSocket support for the Vercel project and redeploy the server. The app reconnects after server-initiated disconnects; room state remains in MongoDB.
+- Create/join rooms using a shareable room code and manage room status.
+- Multi-participant peer-to-peer WebRTC calls, screen sharing, and private whiteboards.
+- Live room chat and WebRTC signaling over authenticated Socket.IO.
+- Client-side encrypted file sharing; shared passphrases are not sent to the server.
 
-Rooms have a short, readable room code for sharing and joining; the server continues to use the MongoDB `_id` internally. Owners can close or reopen a room from the room list. Leaving a room closes it for other participants; the owner can reopen it before anyone joins again. Each participant's whiteboard is private and is not synchronized to other users. Participants can explicitly share their screen or whiteboard video feed; while whiteboard sharing is active, others can see the shared canvas in the video feed without their own whiteboards being changed.
+## Technology and layout
 
-Room chat messages are delivered live to connected room participants and are not persisted. Shared encrypted files appear as clickable entries in chat and can be downloaded/decrypted with the room's shared passphrase.
+- **Client:** HTML, CSS, vanilla JavaScript, WebRTC, Socket.IO client, Web Crypto
+- **Server:** Node.js, Express, MongoDB/Mongoose, JWT, Socket.IO
+- **File storage:** Cloudinary stores encrypted raw file payloads
 
-The initial implementation uses peer-to-peer mesh connections, suitable for small calls. Larger rooms should use an SFU such as mediasoup or LiveKit.
+```text
+client/                  Room, auth, media, whiteboard, and file UI
+  js/                    Room state, WebRTC, chat, file crypto
+  css/                   App, auth, and responsive styles
+server/
+  src/server.js          HTTP and authenticated Socket.IO server
+  src/app.js             REST routes and Express setup
+  src/app/modules/       Auth, rooms, and shared files
+```
+
+Read [`server/README.md`](server/README.md) for setup and [`client/README.md`](client/README.md) for REST and Socket.IO details.
+
+## Operational notes
+
+- Calls use peer-to-peer mesh connections, which are intended for small groups; larger rooms generally need an SFU.
+- Room chat is live but not persisted. Whiteboards are private by default and are not synchronized unless explicitly shared as media.
+- Shared files are encrypted in the browser with the room passphrase before upload. The passphrase is never sent to the server, and Cloudinary stores the encrypted raw payloads.
+- The deployed Socket.IO service needs hosting-platform WebSocket support enabled. Local development uses port `5000`; configure the client origin in `CLIENT_ORIGIN`.

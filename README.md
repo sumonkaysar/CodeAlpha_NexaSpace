@@ -39,3 +39,11 @@ Read [`server/README.md`](server/README.md) for setup and [`client/README.md`](c
 - Room chat is live but not persisted. Whiteboards are private by default and are not synchronized unless explicitly shared as media.
 - Shared files are encrypted in the browser with the room passphrase before upload. The passphrase is never sent to the server, and Cloudinary stores the encrypted raw payloads.
 - The deployed Socket.IO service needs hosting-platform WebSocket support enabled. Local development uses port `5000`; configure the client origin in `CLIENT_ORIGIN`.
+
+## Getting started
+
+Create an account, sign in, then create a room or join one with its shareable code. Grant camera and microphone permissions to participate in a call. For local setup, environment configuration, and deployment considerations, see [`server/README.md`](server/README.md) and [`client/README.md`](client/README.md).
+
+## Privacy and operational considerations
+
+WebRTC media is exchanged peer-to-peer; the server provides signaling and does not relay the call media. The current mesh design is intended for small groups. Chat is transient, whiteboards are private by default, and shared files are encrypted in the browser before being stored.

@@ -1,7 +1,13 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = function authenticateToken(req, res, next) {
-  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "");
+  const cookieToken = req.headers.cookie
+    ?.split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith("nexaspace_token="))
+    ?.slice("nexaspace_token=".length);
+  const token =
+    cookieToken || req.headers.authorization?.replace(/^Bearer\s+/i, "");
 
   if (!token)
     return res.status(401).json({ message: "Authentication required" });

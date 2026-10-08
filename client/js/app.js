@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   currentUserId = getTokenUserId();
   const authForm = document.getElementById("auth-form");
+  if (new URLSearchParams(location.search).get("session") === "expired")
+    document.getElementById("form-message").textContent =
+      "Your session expired. Please sign in again.";
 
   authForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -13,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await roomRequest("POST", "/auth/login", data);
 
-      localStorage.setItem(tokenKey, result.token);
+      setToken(result.token);
       currentUserId = result.user.id;
       location.href = "index.html";
     } catch (error) {
@@ -21,12 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  if (localStorage.getItem(tokenKey) && document.getElementById("room-list")) {
+  if (getToken() && document.getElementById("room-list")) {
     document.getElementById("account-actions").innerHTML =
       '<button class="outline-button" id="logout" type="button">Sign out</button>';
 
     document.getElementById("logout").addEventListener("click", () => {
-      localStorage.removeItem(tokenKey);
+      clearToken();
       location.reload();
     });
 
@@ -53,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("create-room")
     ?.addEventListener("click", async () => {
-      if (!localStorage.getItem(tokenKey)) {
+      if (!getToken()) {
         showToast("Please sign in to create or join a room.");
         return;
       }
@@ -81,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      if (!localStorage.getItem(tokenKey)) {
+      if (!getToken()) {
         showToast("Please sign in to create or join a room.");
         return;
       }

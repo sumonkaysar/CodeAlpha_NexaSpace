@@ -184,13 +184,15 @@ async function downloadSharedFile(fileId, fileName) {
     const response = await fetch(
       `${API}/files/${encodeURIComponent(fileId)}/download`,
       {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
-        },
+        credentials: "include",
+        headers: getToken()
+          ? { Authorization: `Bearer ${getToken()}` }
+          : {},
       },
     );
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
+      handleAuthenticationFailure(response, body);
       throw new Error(body.message || "Could not download file");
     }
 

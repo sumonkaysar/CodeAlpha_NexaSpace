@@ -1,6 +1,6 @@
 async function loadRooms() {
   const list = document.getElementById("room-list");
-  if (!list || !localStorage.getItem(tokenKey)) return;
+  if (!list || !getToken()) return;
 
   try {
     const rooms = await api("/rooms");
@@ -150,7 +150,8 @@ async function enterRoom(roomId) {
   await loadFiles();
 
   socket = window.io("https://nexaspace-server.vercel.app", {
-    auth: { token: localStorage.getItem(tokenKey) },
+    auth: { token: getToken() },
+    withCredentials: true,
     transports: ["websocket"],
     reconnection: true,
     reconnectionDelay: 1000,
@@ -158,8 +159,8 @@ async function enterRoom(roomId) {
   });
   socket.on("connect_error", (error) => {
     if (/invalid or expired token/i.test(error.message)) {
-      localStorage.removeItem(tokenKey);
-      showToast("Your session is invalid or expired. Please sign in again.");
+      clearToken();
+      location.href = "login.html?session=expired";
       return;
     }
     showToast(`Could not connect to the room: ${error.message}`);

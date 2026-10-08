@@ -12,4 +12,5 @@ module.exports = {
   origin(origin, callback) {
     callback(null, !origin || allowedOrigins.has(origin));
   },
+  credentials: true,
 };

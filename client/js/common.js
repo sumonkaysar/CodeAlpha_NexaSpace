@@ -1,5 +1,6 @@
 const API = "https://nexaspace-server.vercel.app/api";
-const tokenKey = "nexaspace_token";
+const tokenCookieName = "nexaspace_token";
+localStorage.removeItem(tokenCookieName);
 let currentUserId = null;
 let currentRoom = null;
 let socket = null;
@@ -14,14 +15,52 @@ const announcedFileIds = new Set();
 const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 let toastTimeout;
 
+function getToken() {
+  const prefix = `${tokenCookieName}=`;
+  const cookie = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+}
+
+function setToken(token) {
+  document.cookie = `${tokenCookieName}=${encodeURIComponent(token)}; Path=/; Max-Age=604800; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+}
+
+function clearToken() {
+  document.cookie = `${tokenCookieName}=; Path=/; Max-Age=0; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+  localStorage.removeItem(tokenCookieName);
+}
+
+function handleAuthenticationFailure(response, body) {
+  if (
+    (response.status === 401 || response.status === 403) &&
+    /invalid|expired/i.test(body.message || body.error || "")
+  ) {
+    clearToken();
+    if (!/\/(login|register)\.html$/i.test(location.pathname))
+      location.href = "login.html?session=expired";
+  }
+}
+
 function getTokenUserId() {
-  const token = localStorage.getItem(tokenKey);
+  const token = getToken();
   if (!token) return null;
   const payload = token.split(".")[1];
-  if (!payload) return null;
+  if (!payload) {
+    clearToken();
+    location.href = "login.html?session=expired";
+    return null;
+  }
   const encoded = payload.replace(/-/g, "+").replace(/_/g, "/");
-  const decoded = atob(encoded + "=".repeat((4 - (encoded.length % 4)) % 4));
-  return JSON.parse(decoded).id || null;
+  try {
+    const decoded = atob(encoded + "=".repeat((4 - (encoded.length % 4)) % 4));
+    return JSON.parse(decoded).id || null;
+  } catch (_error) {
+    clearToken();
+    location.href = "login.html?session=expired";
+    return null;
+  }
 }
 
 function showToast(message) {
@@ -228,23 +267,22 @@ function showInputDialog({ title, label, submitLabel }) {
 
 async function api(path, options = {}) {
   const headers = {
-    ...(localStorage.getItem(tokenKey)
-      ? { Authorization: `Bearer ${localStorage.getItem(tokenKey)}` }
-      : {}),
     ...(options.body instanceof FormData
       ? {}
       : { "Content-Type": "application/json" }),
+    ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${API}${path}`, { ...options, headers });
+  const response = await fetch(`${API}${path}`, {
+    ...options,
+    credentials: "include",
+    headers,
+  });
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    if (response.status === 401) {
-      localStorage.removeItem(tokenKey);
-      throw new Error("Your session is invalid or expired. Please sign in again.");
-    }
+    handleAuthenticationFailure(response, body);
     throw new Error(body.message || "Request failed");
   }
 
